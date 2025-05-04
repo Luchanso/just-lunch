@@ -1,4 +1,4 @@
-name: run
+name: install
 
 on:
   workflow_dispatch:
