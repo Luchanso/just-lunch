@@ -1,0 +1,20 @@
+services:
+  registry:
+    container_name: registry
+    restart: always
+    image: registry:2
+    labels:
+      - traefik.enable=true
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    volumes:
+      - ./data:/var/lib/registry
+      - ./auth:/auth
+    networks:
+      - app
+networks:
+  app:
+    name: app
+    external: true

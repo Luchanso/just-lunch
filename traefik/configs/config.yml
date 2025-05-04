@@ -1,0 +1,28 @@
+tls:
+  certificates:
+    - certFile: /certs/_wildcard.luchanso.mvp.pem
+      keyFile: /certs/_wildcard.luchanso.mvp-key.pem
+    - certFile: /certs/luchanso.mvp.pem
+      keyFile: /certs/luchanso.mvp-key.pem
+http:
+  services:
+    dev:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.68.103:3000/"
+  routers:
+    dev:
+      service: "dev"
+      rule: "Host(`dev.luchanso.mvp`)"
+    next:
+      service: "next-app@docker"
+      rule: "Host(`luchanso.mvp`)"
+      tls: {}
+    static:
+      service: "static-app@docker"
+      rule: "Host(`luchanso.mvp`) && (PathPrefix(`/_next/static`) || PathPrefix(`/public`))"
+      tls: {}
+    registry:
+      service: "registry-registry@docker"
+      rule: "Host(`registry.luchanso.mvp`)"
+      tls: {}

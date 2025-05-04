@@ -1,0 +1,83 @@
+services:
+  next:
+    container_name: next
+    image: ${REGISTRY_HOST}/${REGISTRY_IMAGE_WEB}
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+    depends_on:
+      - database
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 512M
+    networks:
+      - app
+  static:
+    container_name: static
+    image: ${REGISTRY_HOST}/${REGISTRY_IMAGE_STATIC}
+    labels:
+      - traefik.enable=true
+    volumes:
+      - ./static/nginx.conf:/etc/nginx/nginx.conf:ro
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 512M
+    networks:
+      - app
+  database:
+    container_name: database
+    image: postgres:15.0-alpine
+    # throw database ports only for local access via ssh
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+    networks:
+      - app
+    env_file:
+      - .env
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 256M
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    # throw minio ports only for local access via ssh
+    # ports:
+    #   - 127.0.0.1:9001:9001
+    env_file:
+      - .env
+    volumes:
+      - ./minio-data:/data
+    command: server /data --console-address ":9001"
+    # ONLY FOR LOCAL DEBUG
+    # labels:
+    #   - traefik.http.routers.minio.rule=Host(`minio.luchanso.mvp`)
+    #   - traefik.http.services.minio.loadbalancer.server.port=9001
+    #   - traefik.enable=true
+    networks:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 128M
+networks:
+  app:
+    name: app
+    external: true

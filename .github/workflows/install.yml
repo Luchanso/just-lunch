@@ -1,0 +1,63 @@
+name: run
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: "Need (re)install image registry?"
+        required: false
+        type: boolean
+      traefik:
+        description: "Need (re)install traefik service?"
+        required: false
+        type: boolean
+      app:
+        description: "Need (re)install app service?"
+        required: false
+        type: boolean
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          name: id_ed25519
+          known_hosts: ${{ secrets.SSH_KNOW_HOSTS }}
+
+      # INSTALL TRAEFIK
+      - name: "[install-traefik] Copy docker-compose file and env to remote"
+        run: |
+          rsync -chavzP --stats ./traefik/docker-compose.yml ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/traefik
+          rsync -chavzP --stats ./traefik/configs ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/traefik/configs
+        if: ${{ inputs.traefik }}
+      - name: "[install-traefik] Restart traefik"
+        run: ssh ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }} 'cd ${{env.APP_NAME}}/traefik && docker-compose pull && docker-compose up -d'
+        if: ${{ inputs.traefik }}
+
+      # INSTALL REGISTRY
+      - name: "[install-registry] Copy docker-compose file and env to remote"
+        run: |
+          rsync -chavzP --stats ./registry/docker-compose.yml ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/registry
+        if: ${{ inputs.registry }}
+      - name: "[install-registry] Restart registry"
+        run: ssh ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }} 'cd ${{env.APP_NAME}}/registry && docker-compose pull && docker-compose up -d'
+        if: ${{ inputs.registry }}
+
+      # INSTALL APP
+      - name: "[install-app] Create .env file for"
+        run: |
+          echo "${{ secrets.APP_ENV }}" >> .env
+        if: ${{ inputs.app }}
+      - name: "[install-app] Copy docker-compose file and env to remote"
+        run: |
+          rsync -chavzP --stats ./docker-compose.yml ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/app
+          rsync -chavzP --stats ./static ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/app/static
+          rsync -chavzP --stats ./.env ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }}:~/${{ env.APP_NAME }}/app
+        if: ${{ inputs.app }}
+      - name: "[install-app] Restart application"
+        run: ssh ${{ secrets.HOST_USERNAME }}@${{ secrets.HOST }} 'cd ${{env.APP_NAME}}/app && docker-compose pull && docker-compose up -d'
+        if: ${{ inputs.app }}

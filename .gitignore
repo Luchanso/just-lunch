@@ -1,0 +1,6 @@
+.vscode
+.env
+certs
+registry/data/
+registry/auth/
+app/minio-data
