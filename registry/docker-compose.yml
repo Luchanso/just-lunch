@@ -1,6 +1,7 @@
+name: infra
+
 services:
   registry:
-    container_name: registry
     restart: always
     image: registry:2
     labels:

@@ -13,14 +13,44 @@ secrets:
 env:
 - APP_NAME
 
-## Install registry:
+## Install
+
+### Install traefik (1st step)
+```sh
+rsync -chavzP --stats ./traefik/ username@example.com:~/traefik/
+ssh username@example.com
+cd traefik
+docker compose up -d
 ```
+
+### Install registry (2nd step)
+```sh
+# Generating strong password
+openssl rand -base64 32
+
 rsync -chavzP --stats ./registry/docker-compose.yml username@example.com:~/registry/
-rsync -chavzP --stats ./registry/.env username@example.com:~/registry/
+rsync -chavzP --stats ./registry/generate-password.sh username@example.com:~/registry/
+ssh username@example.com
+cd registry
+./generate-password.sh LOGIN PASSWORD
+docker compose up -d
+```
+
+### Install application (3rd step)
+Run this step after all images published in your registry (see Build & Push)
+```sh
+rsync -chavzP --stats ./app/ username@example.com:~/app/
+cd app
+docker compose up -d
 ```
 
 
-## For local debug
+## Build & Push
+```sh
+docker buildx bake production --push # build & remote push
+```
+
+## Local debug
 mkcert for certs
 ```sh
 brew install mkcert

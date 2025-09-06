@@ -20,9 +20,9 @@ http:
       tls: {}
     static:
       service: "static-app@docker"
-      rule: "Host(`luchanso.mvp`) && (PathPrefix(`/_next/static`) || PathPrefix(`/public`))"
+      rule: "Host(`luchanso.mvp`) && (PathPrefix(`/_next/static`) || PathPrefix(`/public`) || Path(`/service-worker.js`))"
       tls: {}
     registry:
-      service: "registry-registry@docker"
+      service: "registry-infra@docker"
       rule: "Host(`registry.luchanso.mvp`)"
       tls: {}

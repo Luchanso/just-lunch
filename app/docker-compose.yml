@@ -1,3 +1,5 @@
+name: luchanso
+
 services:
   next:
     container_name: next
@@ -37,7 +39,7 @@ services:
           memory: 512M
     networks:
       - app
-  database:
+  db:
     container_name: database
     image: postgres:15.0-alpine
     # throw database ports only for local access via ssh
