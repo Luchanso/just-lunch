@@ -1,34 +1,39 @@
-
-group "default" {
-  targets = ["next", "static", "migration"]
+variable "VERSION" {
+  default = "latest"
 }
 
-group "production" {
-  targets = ["next", "static", "migration"]
+group "default" {
+  targets = ["next", "static", "scheduler", "migration"]
+}
+
+target "_common" {
   platforms = ["linux/amd64"]
 }
 
 target "next" {
+  inherits = ["_common"]
   dockerfile = "Dockerfile"
   target = "next"
-  tags = ["registry.luchanso.mvp/app-next"]
+  tags = ["registry.routinedb.com/routinedb-next:${VERSION}"]
 }
 
 target "static" {
+  inherits = ["_common"]
   dockerfile = "Dockerfile"
   target = "static"
-  tags = ["registry.luchanso.mvp/app-static"]
+  tags = ["registry.routinedb.com/routinedb-static:${VERSION}"]
 }
 
-#target "scheduler" {
-#  dockerfile = "./scheduler/Dockerfile"
-#  target = "scheduler"
-#  tags = ["registry.luchanso.mvp/app-scheduler"]
-#
-#}
+// target "scheduler" {
+//   inherits = ["_common"]
+//   dockerfile = "./scheduler/Dockerfile"
+//   target = "scheduler"
+//   tags = ["registry.routinedb.com/routinedb-scheduler:${VERSION}"]
+// }
 
 target "migration" {
+  inherits = ["_common"]
   dockerfile = "./prisma/migration-tool/Dockerfile"
   target = "migration"
-  tags = ["registry.luchanso.mvp/app-migration"]
+  tags = ["registry.routinedb.com/routinedb-migration:${VERSION}"]
 }

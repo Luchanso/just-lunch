@@ -1,5 +1,7 @@
 # Just lunch
 
+TODO: automate infra creation
+
 secrets:
 - HOST
 - HOST_USERNAME
@@ -43,6 +45,9 @@ rsync -chavzP --stats ./app/ username@example.com:~/app/
 cd app
 docker compose up -d
 ```
+
+### Create .deploy.env (4rd step)
+Rename file example.deploy.env & edit it with your values
 
 
 ## Build & Push
